@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+#library(xlsx)
+library(rio)
+library(stringr)
+library(XML)
+
+data <- import("Studieplan_mastertracks_20172018 (3).csv",encoding = "UTF-8")
+
+var.labels <- data[1 , ]
+
+data <- data[-1, ]
+
+#Extract the names of the tracks
+data$Q1 <- 
+  htmlParse(data$Q1) %>%
+  getNodeSet(path = "//a[@href]") %>%
+  xmlSApply(xmlValue)
+
+names(data) <- var.labels
+data <- 
+  data %>% 
+    select(starts_with("welke"),
+           contains("Wat is je naam"),
+           starts_with("Vul hier je UvA studentnummer"),
+           contains("Study duration in months"),
+           contains("Tijdsbesteding"),
+           contains("studieduur en tijdsbesteeding"),
+           contains("1st semester 2017"),
+           contains("2nd semester 2017"),
+           contains("1st semester 2018"),
+           contains("2nd semester 2018"),
+           contains("Mocht je nog toelichting willen geven op je planning, dan kan dit hieronder."))
+
+#Make new names
+
+newnames <- read.table("names.csv",header = FALSE,sep = ",")
+names(data) <- newnames$V1
+data %>% View()
+
+#Generate xlsx file
+
+data %>% 
+  write.csv("masterselectieoutput.csv",fileEncoding = "UTF-16LE")
+
+
+
+
+```
+
